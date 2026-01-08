@@ -75,7 +75,7 @@ jobs:
 
   docker:
     needs: [build, e2e]
-    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' }}
+    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/custom_properties' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -94,7 +94,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: skohub/skohub-vocabs-docker
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/skohub-vocabs-docker
           tags: |
             # set latest tag for default branch
             type=raw,value=latest,enable={{is_default_branch}}#
