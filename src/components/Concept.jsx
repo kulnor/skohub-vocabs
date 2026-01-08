@@ -5,10 +5,11 @@ import { getConfigAndConceptSchemes } from "../hooks/configAndConceptSchemes.js"
 import { useSkoHubContext } from "../context/Context.jsx"
 import { i18n, getDomId, getFilePath } from "../common"
 import ConceptURI from "./ConceptURI.jsx"
+import CustomProperties from "./CustomProperties.jsx"
 import { useEffect, useState } from "react"
 
 const Concept = ({
-  pageContext: { node: concept, collections, customDomain },
+  pageContext: { node: concept, collections, customDomain, customProperties },
 }) => {
   const { config, conceptSchemes } = getConfigAndConceptSchemes()
   const { data } = useSkoHubContext()
@@ -266,6 +267,11 @@ const Concept = ({
           </ul>
         </div>
       )}
+      <CustomProperties
+        properties={customProperties}
+        node={concept}
+        language={language}
+      />
     </div>
   )
 }

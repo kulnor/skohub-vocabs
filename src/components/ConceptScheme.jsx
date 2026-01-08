@@ -3,12 +3,13 @@ import Concept from "./Concept"
 import { i18n, getDomId, getFilePath } from "../common"
 import JsonLink from "./JsonLink"
 import ConceptURI from "./ConceptURI"
+import CustomProperties from "./CustomProperties"
 import { useSkoHubContext } from "../context/Context"
 import { useEffect, useState } from "react"
 import { useLocation } from "@gatsbyjs/reach-router"
 
 const ConceptScheme = ({
-  pageContext: { node: conceptScheme, embed, customDomain },
+  pageContext: { node: conceptScheme, embed, customDomain, customProperties },
 }) => {
   const { data } = useSkoHubContext()
   const [language, setLanguage] = useState("")
@@ -73,6 +74,11 @@ const ConceptScheme = ({
               <p>{conceptScheme.preferredNamespacePrefix}</p>
             </div>
           )}
+          <CustomProperties
+            properties={customProperties}
+            node={conceptScheme}
+            language={language}
+          />
         </div>
       </div>
     )

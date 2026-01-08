@@ -144,6 +144,9 @@ function loadConfig(configFile, defaultFile) {
       userConfig.searchableAttributes || defaults.searchableAttributes,
     customDomain: userConfig.custom_domain || "",
     failOnValidation: userConfig.fail_on_validation,
+    namespaces: userConfig.namespaces || defaults.namespaces || {},
+    custom_properties:
+      userConfig.custom_properties || defaults.custom_properties || [],
   }
 
   // check if all relevant colors are contained, otherwise use default colors

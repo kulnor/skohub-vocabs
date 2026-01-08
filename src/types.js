@@ -1,9 +1,29 @@
-module.exports = (languages) => `
+module.exports = (languages, config) => {
+  const customFields = (className) => {
+    return config.custom_properties
+      .filter((prop) => prop.classes.includes(className))
+      .map((prop) => {
+        let type = "String"
+        if (prop.type === "languageMap") type = "LanguageMap"
+        if (prop.type === "languageMapArray") type = "LanguageMapArray"
+        return `${prop.id}: ${type}`
+      })
+      .join(", ")
+  }
+
+  const customFieldsString = (className) => {
+    const fields = customFields(className)
+    return fields ? `, ${fields}` : ""
+  }
+
+  return `
 
   type Collection implements Node {
     type: String,
     prefLabel: LanguageMap,
-    member: [Concept] @link(from: "member___NODE")
+    member: [Concept] @link(from: "member___NODE")${customFieldsString(
+      "Collection"
+    )}
   }
 
   type ConceptScheme implements Node {
@@ -18,7 +38,7 @@ module.exports = (languages) => `
     issued: String,
     preferredNamespaceUri: String,
     preferredNamespacePrefix: String,
-    publisher: Concept
+    publisher: Concept${customFieldsString("ConceptScheme")}
   }
 
   type Concept implements Node {
@@ -49,14 +69,23 @@ module.exports = (languages) => `
     inSchemeAll: [ConceptScheme],
     hub: String,
     deprecated: Boolean,
-    isReplacedBy: [Concept]
+    isReplacedBy: [Concept]${customFieldsString("Concept")}
   }
 
   type LanguageMap {
-    ${[...languages].map((l) => `${l}: String`).join(", ")}
+    ${
+      languages.size > 0
+        ? [...languages].map((l) => `${l}: String`).join(", ")
+        : "en: String"
+    }
   }
   
   type LanguageMapArray {
-    ${[...languages].map((l) => `${l}: [String]`).join(", ")}
+    ${
+      languages.size > 0
+        ? [...languages].map((l) => `${l}: [String]`).join(", ")
+        : "en: [String]"
+    }
   }
 `
+}

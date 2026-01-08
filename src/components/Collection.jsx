@@ -1,10 +1,13 @@
 import { Link } from "gatsby"
 import { i18n, getFilePath } from "../common"
 import JsonLink from "./JsonLink"
+import CustomProperties from "./CustomProperties"
 import { useSkoHubContext } from "../context/Context"
 import { useEffect, useState } from "react"
 
-const Collection = ({ pageContext: { node: collection, customDomain } }) => {
+const Collection = ({
+  pageContext: { node: collection, customDomain, customProperties },
+}) => {
   const { data } = useSkoHubContext()
   const [language, setLanguage] = useState("")
 
@@ -29,6 +32,11 @@ const Collection = ({ pageContext: { node: collection, customDomain } }) => {
           </li>
         ))}
       </ul>
+      <CustomProperties
+        properties={customProperties}
+        node={collection}
+        language={language}
+      />
     </div>
   )
 }

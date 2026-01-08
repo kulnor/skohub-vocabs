@@ -1,4 +1,16 @@
-module.exports.allCollection = (languages) => `
+const customFields = (className, config) => {
+  return config.custom_properties
+    .filter((prop) => prop.classes.includes(className))
+    .map((prop) => prop.id)
+    .join(" ")
+}
+
+const customFieldsString = (className, config) => {
+  const fields = customFields(className, config)
+  return fields ? ` ${fields}` : ""
+}
+
+module.exports.allCollection = (languages, config) => `
 {
   allCollection {
     edges {
@@ -13,14 +25,14 @@ module.exports.allCollection = (languages) => `
           prefLabel {
             ${[...languages].join(" ")}
           }
-        }
+        }${customFieldsString("Collection", config)}
       }
     }
   }
 }
 `
 
-module.exports.allConcept = (inScheme, languages) => `
+module.exports.allConcept = (inScheme, languages, config) => `
   {
     allConcept(
       filter: {
@@ -131,14 +143,14 @@ module.exports.allConcept = (inScheme, languages) => `
           deprecated
           isReplacedBy {
             id
-          }
+          }${customFieldsString("Concept", config)}
         }
       }
     }
   }
 `
 
-module.exports.allConceptScheme = (languages) => `
+module.exports.allConceptScheme = (languages, config) => `
   {
     allConceptScheme {
       edges {
@@ -195,7 +207,7 @@ module.exports.allConceptScheme = (languages) => `
                 }
               }
             }
-          }
+          }${customFieldsString("ConceptScheme", config)}
         }
       }
     }
@@ -221,7 +233,7 @@ module.exports.allConceptScheme = (languages) => `
     scopeNote {
       ${[...languages].join(" ")}
     }
-    deprecated
+    deprecated${customFieldsString("Concept", config)}
   }
 `
 module.exports.tokenizer = `{

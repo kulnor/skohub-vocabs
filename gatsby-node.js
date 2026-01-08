@@ -109,7 +109,16 @@ exports.onPreBootstrap = async ({ createContentDigest, actions, getNode }) => {
   for (const f of ttlFiles) {
     const ttlString = fs.readFileSync(f).toString()
     const doc = await jsonld.fromRDF(ttlString, { format: "text/turtle" })
-    const compacted = await jsonld.compact(doc, context.jsonld)
+
+    const localContext = {
+      ...context.jsonld["@context"],
+      ...config.namespaces,
+    }
+    config.custom_properties.forEach((prop) => {
+      localContext[prop.id] = prop.property
+    })
+
+    const compacted = await jsonld.compact(doc, { "@context": localContext })
 
     if (config.failOnValidation) {
       try {
@@ -154,6 +163,14 @@ exports.onPreBootstrap = async ({ createContentDigest, actions, getNode }) => {
         // "vann:preferredNamespacePrefix": preferredNamespacePrefix,
         ...properties
       } = graph
+
+      // Extract custom properties
+      const customProperties = {}
+      config.custom_properties.forEach((prop) => {
+        if (prop.classes.includes(graph.type) || graph[prop.id]) {
+          customProperties[prop.id] = graph[prop.id] || null
+        }
+      })
       const type = Array.isArray(properties.type)
         ? properties.type.find((t) => [
             "Concept",
@@ -170,6 +187,7 @@ exports.onPreBootstrap = async ({ createContentDigest, actions, getNode }) => {
       )
       const node = {
         ...properties,
+        ...customProperties,
         type,
         children: (narrower || hasTopConcept || []).map(
           (narrower) => narrower.id
@@ -236,14 +254,14 @@ exports.onPreBootstrap = async ({ createContentDigest, actions, getNode }) => {
 
 exports.sourceNodes = async ({ actions }) => {
   const { createTypes } = actions
-  createTypes(types(languages))
+  createTypes(types(languages, config))
 }
 
 exports.createPages = async ({ graphql, actions: { createPage } }) => {
   const memberOf = {}
 
   // Build collection pages
-  const collections = await graphql(queries.allCollection(languages))
+  const collections = await graphql(queries.allCollection(languages, config))
   await Promise.all(
     collections.data.allCollection.edges.map(async ({ node: collection }) => {
       // store collection membership for concepts
@@ -263,6 +281,7 @@ exports.createPages = async ({ graphql, actions: { createPage } }) => {
         context: {
           node: collection,
           customDomain: config.customDomain,
+          customProperties: config.custom_properties,
         },
       })
       createData({
@@ -283,7 +302,9 @@ exports.createPages = async ({ graphql, actions: { createPage } }) => {
       },
     },
   } = await graphql(queries.tokenizer)
-  const conceptSchemes = await graphql(queries.allConceptScheme(languages))
+  const conceptSchemes = await graphql(
+    queries.allConceptScheme(languages, config)
+  )
 
   conceptSchemes.errors && console.error(conceptSchemes.errors)
 
@@ -308,7 +329,7 @@ exports.createPages = async ({ graphql, actions: { createPage } }) => {
         )
 
         const conceptsInScheme = await graphql(
-          queries.allConcept(conceptScheme.id, languages)
+          queries.allConcept(conceptScheme.id, languages, config)
         )
         // embed concept scheme data
         const embeddedConcepts = [
@@ -343,6 +364,7 @@ exports.createPages = async ({ graphql, actions: { createPage } }) => {
                   ? memberOf[concept.id]
                   : [],
                 customDomain: config.customDomain,
+                customProperties: config.custom_properties,
               },
             })
             createData({
@@ -391,6 +413,7 @@ exports.createPages = async ({ graphql, actions: { createPage } }) => {
             node: conceptScheme,
             embed: embeddedConcepts,
             customDomain: config.customDomain,
+            customProperties: config.custom_properties,
           },
         })
         const jsonldConceptScheme = replaceMultipleKeysInObject(conceptScheme, [
