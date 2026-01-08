@@ -63,6 +63,8 @@ describe("Config Parsing", () => {
           },
         ],
       },
+      namespaces: {},
+      custom_properties: [],
     })
   })
 
