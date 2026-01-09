@@ -1,12 +1,19 @@
-const customFields = (className, config) => {
+const customFields = (className, config, languages) => {
   return config.custom_properties
     .filter((prop) => prop.classes.includes(className))
-    .map((prop) => prop.id)
+    .map((prop) => {
+      if (prop.type === "languageMap" || prop.type === "languageMapArray") {
+        return `${prop.id} {
+          ${[...languages].join(" ")}
+        }`
+      }
+      return prop.id
+    })
     .join(" ")
 }
 
-const customFieldsString = (className, config) => {
-  const fields = customFields(className, config)
+const customFieldsString = (className, config, languages) => {
+  const fields = customFields(className, config, languages)
   return fields ? ` ${fields}` : ""
 }
 
@@ -25,7 +32,7 @@ module.exports.allCollection = (languages, config) => `
           prefLabel {
             ${[...languages].join(" ")}
           }
-        }${customFieldsString("Collection", config)}
+        }${customFieldsString("Collection", config, languages)}
       }
     }
   }
@@ -143,7 +150,7 @@ module.exports.allConcept = (inScheme, languages, config) => `
           deprecated
           isReplacedBy {
             id
-          }${customFieldsString("Concept", config)}
+          }${customFieldsString("Concept", config, languages)}
         }
       }
     }
@@ -207,7 +214,7 @@ module.exports.allConceptScheme = (languages, config) => `
                 }
               }
             }
-          }${customFieldsString("ConceptScheme", config)}
+          }${customFieldsString("ConceptScheme", config, languages)}
         }
       }
     }
@@ -233,7 +240,7 @@ module.exports.allConceptScheme = (languages, config) => `
     scopeNote {
       ${[...languages].join(" ")}
     }
-    deprecated${customFieldsString("Concept", config)}
+    deprecated${customFieldsString("Concept", config, languages)}
   }
 `
 module.exports.tokenizer = `{
