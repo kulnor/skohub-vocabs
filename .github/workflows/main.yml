@@ -96,10 +96,12 @@ jobs:
         with:
           images: ${{ secrets.DOCKERHUB_USERNAME }}/skohub-vocabs-docker
           tags: |
-            # set latest tag for default branch
-            type=raw,value=latest,enable={{is_default_branch}}#
-            type=raw,value=dev,enable=${{ github.ref == format('refs/heads/{0}', 'dev') }}
-            
+            # set latest tag for default branch or custom_properties branch
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/custom_properties' }}
+            # set branch name as tag
+            type=ref,event=branch
+
       - name: Build and export to Docker
         uses: docker/build-push-action@v3
         with:
@@ -117,6 +119,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
+          context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
