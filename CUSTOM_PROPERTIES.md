@@ -78,4 +78,23 @@ Used for properties that can have multiple values per language (like `skos:altLa
 Custom properties are dynamically added to the Gatsby GraphQL schema during the `sourceNodes` phase. The parsing logic in `gatsby-node.js` extracts these properties from the JSON-LD compacted graph and attaches them to the respective nodes.
 
 ### UI Rendering
+
 A generic `CustomProperties` component is responsible for iterating over the configured properties for a node and rendering them if data exists. It uses the `i18n` utility to ensure the correct language version is shown.
+
+## Technical Details
+
+### Automatic JSON-LD Context Management
+SkoHub automatically generates the necessary JSON-LD context for your custom properties. For properties defined as `languageMap` or `languageMapArray`, it automatically adds `@container: @language` to the local context. This ensures that RDF literals with language tags are correctly compacted into the object structure (e.g., `{"en": "value"}`) that the UI components expect.
+
+### Automatic GraphQL Query Generation
+When you define a custom property as a `languageMap`, SkoHub's internal query generator automatically adds the required subfield selections for all active languages. You don't need to manually update GraphQL queries; the system ensures that complex types are fetched with their language subfields (e.g., `computationMethod { en de }`).
+
+## Troubleshooting
+
+### Error: Field "X" of type "LanguageMap" must have a selection of subfields
+If you see this error, it usually means the custom property was recognized as a `LanguageMap` in the schema but was queried as a simple string. SkoHub Vocabs (on the `custom_properties` branch) fixes this by automatically generating these selections. Ensure you are using the latest version of `src/queries.js` and `gatsby-node.js`.
+
+### Property is defined in config but not showing in UI
+1. **Check Classes**: Ensure the `classes` array in `config.yaml` includes the type of the node you are viewing (e.g., `Concept`).
+2. **Check RDF Type**: Ensure the property URI in your Turtle file exactly matches the `property` defined in the config (or matches via a defined prefix).
+3. **Check Language Tags**: For `languageMap` types, ensure your RDF data has language tags (e.g., `"Value"@en`). If the data is a plain literal, it won't match the language map structure unless the context specifies it.
