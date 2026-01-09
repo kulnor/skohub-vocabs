@@ -115,7 +115,19 @@ exports.onPreBootstrap = async ({ createContentDigest, actions, getNode }) => {
       ...config.namespaces,
     }
     config.custom_properties.forEach((prop) => {
-      localContext[prop.id] = prop.property
+      if (prop.type === "languageMap") {
+        localContext[prop.id] = {
+          "@id": prop.property,
+          "@container": "@language",
+        }
+      } else if (prop.type === "languageMapArray") {
+        localContext[prop.id] = {
+          "@id": prop.property,
+          "@container": ["@language", "@set"],
+        }
+      } else {
+        localContext[prop.id] = prop.property
+      }
     })
 
     const compacted = await jsonld.compact(doc, { "@context": localContext })
